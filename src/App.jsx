@@ -1,5 +1,4 @@
-import Header from "./components/header/Header";
-import WeatherBoard from "./components/weather/WeatherBoard";
+import Page from "./Page";
 import { FavouriteProvider, LocationProvider, WeatherProvider } from "./provider";
 
 export default function App() {
@@ -7,14 +6,7 @@ export default function App() {
     <LocationProvider>
       <WeatherProvider>
         <FavouriteProvider>
-          <div className="grid place-items-center h-screen">
-            <Header />
-            <main className="mt-16">
-              <section>
-                <WeatherBoard />
-              </section>
-            </main>
-          </div>
+          <Page />
         </FavouriteProvider>
       </WeatherProvider>
     </LocationProvider>

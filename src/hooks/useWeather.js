@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { LocationContext } from "../context";
 
 const useWeather = () => {
     const [weatherData, setWeatherData] = useState({
@@ -14,7 +15,6 @@ const useWeather = () => {
         longitude: "",
         latitude: "",
     });
-
     const [loading, setLoading] = useState({
         state: false,
         message: "",
@@ -22,22 +22,23 @@ const useWeather = () => {
 
     const [error, setError] = useState(null);
 
-    const featchWeatherData = async (longitude, latitude) => {
+    const { selectedLocation } = useContext(LocationContext);
+
+    const fetchWeatherData = async (latitude, longitude) => {
         try {
             setLoading({
                 ...loading,
                 state: true,
-                message: "Featching weather data...",
-            })
+                message: "Fetching weather data...",
+            });
 
             const response = await fetch(
-                `https://api.openweathermap.org/data/2.5/weather?lat=40.7128&lon=-74.0060&appid=${import.meta.env.VITE_WEATHER_API_KEY
+                `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${import.meta.env.VITE_WEATHER_API_KEY
                 }&units=metric`
             );
 
-
             if (!response.ok) {
-                const errorMessage = `Featching weather data failed: ${response.status}`;
+                const errorMessage = `Fetching weather data failed: ${response.status}`;
                 throw new Error(errorMessage);
             }
 
@@ -56,14 +57,8 @@ const useWeather = () => {
                 time: data?.dt,
                 longitude: longitude,
                 latitude: latitude,
-            }
+            };
             setWeatherData(updateWeatherData);
-
-
-
-
-
-
         } catch (err) {
             setError(err);
         } finally {
@@ -71,25 +66,37 @@ const useWeather = () => {
                 ...loading,
                 state: false,
                 message: "",
-            })
+            });
         }
-    }
+    };
 
     useEffect(() => {
         setLoading({
-            loading: true,
-            message: "Finding Locations..."
-        })
-        navigator.geolocation.getCurrentPosition(function (position) {
-            featchWeatherData(position.coords.latitude, position.coords.longitude);
-        })
-    }, []);
+            ...loading,
+            state: true,
+            message: "Finding location...",
+        });
+
+        if (selectedLocation.latitude && selectedLocation.longitude) {
+            fetchWeatherData(
+                selectedLocation.latitude,
+                selectedLocation.longitude
+            );
+        } else {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                fetchWeatherData(
+                    position.coords.latitude,
+                    position.coords.longitude
+                );
+            });
+        }
+    }, [selectedLocation.latitude, selectedLocation.longitude]);
 
     return {
         weatherData,
+        error,
         loading,
-        error
-    }
-}
+    };
+};
 
 export default useWeather;
